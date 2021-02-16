@@ -1,0 +1,36 @@
+version: '3'
+services:
+  server:
+    container_name: server
+    build: .
+    networks:
+      - skelly
+    environment:
+      # TODO: CONFIGURE TO CONNECT TO LOCAL MONGODB
+      SKELLY_LOG_LEVEL: error
+      SKELLY_PORT: '8080'
+      SKELLY_MONGO_HOST: localhost:20217
+      SKELLY_MONGO_DB: skelly
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - '8080:8080'
+    depends_on:
+      - mongodb
+
+
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - "mongodata:/data/db"
+    networks:
+      - skelly
+
+volumes:
+   mongodata:
+
+networks:
+  skelly:
