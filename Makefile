@@ -20,6 +20,18 @@ build:
 	@echo "### Building static release/skelly binary"
 	go build -o release/skelly github.com/davidvader/skelly/cmd/skelly
 
+.PHONY: build-static-ci
+build-static-ci:
+	#################################
+	######    Build CI Binary     ######
+	#################################
+	@echo
+	@echo "### Building CI static release/skelly binary"
+	@go build -a \
+		-ldflags '-s -w -extldflags "-static" ${LD_FLAGS}' \
+		-o release/vela-git \
+		github.com/go-vela/vela-git/cmd/vela-git
+
 linux:
 	#################################
 	######  Build Linux Binary ######

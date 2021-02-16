@@ -1,6 +1,6 @@
 # Skelly
 
-Skelly is a Slack bot for automatically reacting to emoji, written in [Go](https://golang.org/)
+Skelly is a Slack bot for automatically reacting to user typing, written in [Go](https://golang.org/)
 
 ## Usage
 
@@ -18,10 +18,10 @@ To configure Skelly, all you need to do is
 
 ```
 /skelly help
-/skelly add :+1: @slack-admins
+/skelly add @slack-admins
 ```
 
-3. Add the emoji to a message to trigger a response!
+3. Start typing!
 
 If you want your response to include nice links, use the following syntax:
 
@@ -40,11 +40,11 @@ For a list of useful commands, try
 | Command  | Input | Effect |
 | ------------------- | -------- | ------------- |
 | /skelly help  | NONE | prints helpful information |
-| /skelly add :+1: &lt;@usergroup&gt;  | &lt;@usergroup&gt; (optional) | opens the modal for adding an emoji reaction _in that channel_ for users in the specified usergroup |
-| /skelly add :heart:  | NONE | adds an emoji reaction _in that channel_ for all users |
-| /skelly update :eyes: &lt;@usergroup&gt; | &lt;@usergroup&gt; (optional) | opens the modal for updating an emoji reaction |
-| /skelly delete :confused: &lt;@usergroup&gt;  | &lt;@usergroup&gt; (optional) | opens the modal for deleting an emoji reaction |
-| /skelly list  | NONE` | lists all emoji reactions that exist _in that channel_ |
+| /skelly add &lt;@usergroup&gt;  | &lt;@usergroup&gt; (optional) | opens the modal for adding a typing reaction _in that channel_ that ignores users in the specified usergroup |
+| /skelly add | NONE | adds a typing reaction _in that channel_ for all users |
+| /skelly update &lt;@usergroup&gt; | &lt;@usergroup&gt; (optional) | opens the modal for updating a typing reaction |
+| /skelly delete &lt;@usergroup&gt;  | &lt;@usergroup&gt; (optional) | opens the modal for deleting a typing reaction |
+| /skelly list  | NONE` | lists all typing reactions that exist _in that channel_ |
 
 
 
@@ -60,9 +60,9 @@ $ make build
 
 $ ./release/skelly --help
 
-$ ./release/skelly reaction add --emoji smile --channel <CHANNEL_ID> --usergroup none --response "Hello!"
+$ ./release/skelly reaction add --channel <CHANNEL_ID> --usergroup none --response "Hello!"
 
-$ ./release/skelly reaction trigger --emoji smile --channel <CHANNEL_ID> --user <USER_ID>
+$ ./release/skelly reaction trigger --channel <CHANNEL_ID> --user <USER_ID>
 
 ```
 
@@ -107,7 +107,7 @@ $ cp release/skelly /usr/local/bin/
 $ skelly --help
 
 # add a reaction
-$ skelly reaction view --channel C016DRZPLBC --emoji smile --usergroup none
+$ skelly reaction view --channel C016DRZPLBC --usergroup none
 
 # list reactions
 $ skelly reaction list --channel C016DRZPLBC
