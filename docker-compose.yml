@@ -6,7 +6,6 @@ services:
     networks:
       - skelly
     environment:
-      # TODO: CONFIGURE TO CONNECT TO LOCAL MONGODB
       SKELLY_LOG_LEVEL: error
       SKELLY_PORT: '8080'
       SKELLY_MONGO_HOST: localhost:20217
