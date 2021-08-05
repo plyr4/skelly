@@ -68,7 +68,7 @@ func handleSubCommand(s *slack.SlashCommand, command string, args []string) erro
 
 		return nil
 
-	// /skelly add :emoji: <@usergroup>
+	// /skelly add
 	case addSubCommand:
 
 		// open add reaction modal
@@ -80,7 +80,7 @@ func handleSubCommand(s *slack.SlashCommand, command string, args []string) erro
 
 		return nil
 
-	// /skelly update :smile: <@usergroup>
+	// /skelly update
 	case updateSubCommand:
 
 		// open update reaction modal
@@ -92,7 +92,7 @@ func handleSubCommand(s *slack.SlashCommand, command string, args []string) erro
 
 		return nil
 
-	// /skelly delete :smile: <@usergroup>
+	// /skelly delete
 	case deleteSubCommand:
 
 		// open delete reaction modal
@@ -127,28 +127,6 @@ func handleSubCommand(s *slack.SlashCommand, command string, args []string) erro
 		}
 		return nil
 	}
-}
-
-// parseReactionSubCommandArgs takes input args and parses emoji and usergroup
-// returns error if input is not valid
-func parseReactionSubCommandArgs(args []string) (string, string, error) {
-
-	// validate input
-	if len(args) != 2 && len(args) != 3 {
-		return "", "", errors.New("invalid number of args")
-	}
-
-	// extract emoji
-	emoji := args[1]
-
-	// default usergroup set to "none"
-	usergroup := "none"
-
-	// user specified usergroup
-	if len(args) == 3 {
-		usergroup = args[2]
-	}
-	return emoji, usergroup, nil
 }
 
 // parseListSubCommandArgs takes input args and checks for no args

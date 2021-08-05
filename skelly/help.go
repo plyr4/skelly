@@ -13,7 +13,7 @@ func sendHelp(command, responseURL string) error {
 	given := slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", command, false, false), nil, nil)
 
 	// header
-	description := slack.NewTextBlockObject("mrkdwn", "I automatically react to emoji.\nHere are some commands you can use the same as `/skelly help`.", false, false)
+	description := slack.NewTextBlockObject("mrkdwn", "I automatically react to typing.\nHere are some commands you can use the same as `/skelly help`.", false, false)
 	header := slack.NewSectionBlock(description, nil, nil)
 
 	// commands
@@ -22,16 +22,16 @@ func sendHelp(command, responseURL string) error {
 		slack.NewTextBlockObject("mrkdwn", "*Action*", false, false),
 		slack.NewTextBlockObject("mrkdwn", "/skelly help", false, false),
 		slack.NewTextBlockObject("mrkdwn", "prints commands and helpful information", false, false),
-		slack.NewTextBlockObject("mrkdwn", "/skelly add :+1: @slack-admins", false, false),
-		slack.NewTextBlockObject("mrkdwn", "trigger a response when :+1: is added by members of the usergroup (optional)", false, false),
+		slack.NewTextBlockObject("mrkdwn", "/skelly add", false, false),
+		slack.NewTextBlockObject("mrkdwn", "trigger a response when users type in the channel", false, false),
 	}
 	commandsA := slack.NewSectionBlock(nil, t, nil)
 
 	// split commands due to field limit
 	t = []*slack.TextBlockObject{
-		slack.NewTextBlockObject("mrkdwn", "/skelly update :heart: @slack-admins", false, false),
+		slack.NewTextBlockObject("mrkdwn", "/skelly update", false, false),
 		slack.NewTextBlockObject("mrkdwn", "update a reaction in this channel", false, false),
-		slack.NewTextBlockObject("mrkdwn", "/skelly delete :link: @slack-admins", false, false),
+		slack.NewTextBlockObject("mrkdwn", "/skelly delete", false, false),
 		slack.NewTextBlockObject("mrkdwn", "delete a reaction in this channel", false, false),
 		slack.NewTextBlockObject("mrkdwn", "/skelly list", false, false),
 		slack.NewTextBlockObject("mrkdwn", "lists all reactions in this channel", false, false),

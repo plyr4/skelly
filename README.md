@@ -40,10 +40,10 @@ For a list of useful commands, try
 | Command  | Input | Effect |
 | ------------------- | -------- | ------------- |
 | /skelly help  | NONE | prints helpful information |
-| /skelly add &lt;@usergroup&gt;  | &lt;@usergroup&gt; (optional) | opens the modal for adding a typing reaction _in that channel_ that ignores users in the specified usergroup |
+| /skelly add  | NONE | opens the modal for adding a typing reaction _in that channel_ |
 | /skelly add | NONE | adds a typing reaction _in that channel_ for all users |
-| /skelly update &lt;@usergroup&gt; | &lt;@usergroup&gt; (optional) | opens the modal for updating a typing reaction |
-| /skelly delete &lt;@usergroup&gt;  | &lt;@usergroup&gt; (optional) | opens the modal for deleting a typing reaction |
+| /skelly update | NONE | opens the modal for updating a typing reaction |
+| /skelly delete | NONE | opens the modal for deleting a typing reaction |
 | /skelly list  | NONE` | lists all typing reactions that exist _in that channel_ |
 
 
@@ -60,7 +60,7 @@ $ make build
 
 $ ./release/skelly --help
 
-$ ./release/skelly reaction add --channel <CHANNEL_ID> --usergroup none --response "Hello!"
+$ ./release/skelly reaction add --channel <CHANNEL_ID> --response "Hello!"
 
 $ ./release/skelly reaction trigger --channel <CHANNEL_ID> --user <USER_ID>
 
@@ -107,7 +107,7 @@ $ cp release/skelly /usr/local/bin/
 $ skelly --help
 
 # add a reaction
-$ skelly reaction view --channel C016DRZPLBC --usergroup none
+$ skelly reaction view --channel C016DRZPLBC
 
 # list reactions
 $ skelly reaction list --channel C016DRZPLBC

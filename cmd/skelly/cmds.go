@@ -28,21 +28,21 @@ var (
 	}
 
 	// reactionCmds defines the main command for controlling reactions.
-	// trigger defines the command for simulating a skelly a slack emoji reaction.
+	// trigger defines the command for simulating a skelly a slack reaction.
 	reactionCmds = []*cli.Command{
 		{
 			Name:        "reaction",
 			Category:    "Reaction",
 			Aliases:     []string{"r"},
-			Description: "Use this command to control reactions for a specified channel & emoji.",
-			Usage:       "Controls reactions for a specified channel & emoji",
+			Description: "Use this command to control reactions for a specified channel.",
+			Usage:       "Controls reactions for a specified channel",
 			Subcommands: []*cli.Command{
 				{
 					Name:        "view",
 					Category:    "Reaction",
 					Aliases:     []string{"v", "get"},
-					Description: "Use this command to view a reaction for a specified channel and emoji.",
-					Usage:       "View reaction for a specified channel and emoji",
+					Description: "Use this command to view a reaction for a specified channel.",
+					Usage:       "View reaction for a specified channel",
 					Before:      validateView,
 					Action:      view,
 					Flags: []cli.Flag{
@@ -52,20 +52,6 @@ var (
 							Aliases: []string{"c"},
 							Usage:   "for which channel to retrieve a reaction",
 							Value:   "",
-						},
-						&cli.StringFlag{
-							EnvVars: []string{"SKELLY_EMOJI"},
-							Name:    "emoji",
-							Aliases: []string{"e"},
-							Usage:   "for which emoji to retrieve a reaction",
-							Value:   "",
-						},
-						&cli.StringFlag{
-							EnvVars: []string{"SKELLY_USERGROUP"},
-							Name:    "usergroup",
-							Aliases: []string{"u"},
-							Usage:   "for which usergroup to retrieve a reaction",
-							Value:   "none",
 						},
 					},
 				},
@@ -109,8 +95,8 @@ var (
 					Name:        "add",
 					Category:    "Reaction",
 					Aliases:     []string{"a"},
-					Description: "Use this command to add a reaction for a specified channel & emoji.",
-					Usage:       "Add a reaction for a specified channel & emoji",
+					Description: "Use this command to add a reaction for a specified channel.",
+					Usage:       "Add a reaction for a specified channel",
 					Before:      validateAdd,
 					Action:      add,
 					Flags: []cli.Flag{
@@ -120,20 +106,6 @@ var (
 							Aliases: []string{"c"},
 							Usage:   "for which channel to add",
 							Value:   "",
-						},
-						&cli.StringFlag{
-							EnvVars: []string{"SKELLY_EMOJI"},
-							Name:    "emoji",
-							Aliases: []string{"e"},
-							Usage:   "for which emoji to add",
-							Value:   "",
-						},
-						&cli.StringFlag{
-							EnvVars: []string{"SKELLY_USERGROUP"},
-							Name:    "usergroup",
-							Aliases: []string{"ug"},
-							Usage:   "for which usergroup to add",
-							Value:   "none",
 						},
 						&cli.StringFlag{
 							Name:    "response",
@@ -147,8 +119,8 @@ var (
 					Name:        "update",
 					Category:    "Reaction",
 					Aliases:     []string{"u"},
-					Description: "Use this command to update a reaction for a specified channel & emoji.",
-					Usage:       "Update a reaction for a specified channel & emoji",
+					Description: "Use this command to update a reaction for a specified channel.",
+					Usage:       "Update a reaction for a specified channel",
 					Before:      validateUpdate,
 					Action:      update,
 					Flags: []cli.Flag{
@@ -158,20 +130,6 @@ var (
 							Aliases: []string{"c"},
 							Usage:   "for which channel to update",
 							Value:   "",
-						},
-						&cli.StringFlag{
-							EnvVars: []string{"SKELLY_EMOJI"},
-							Name:    "emoji",
-							Aliases: []string{"e"},
-							Usage:   "for which emoji to update",
-							Value:   "",
-						},
-						&cli.StringFlag{
-							EnvVars: []string{"SKELLY_USERGROUP"},
-							Name:    "usergroup",
-							Aliases: []string{"u"},
-							Usage:   "for which usergroup to update",
-							Value:   "none",
 						},
 						&cli.StringFlag{
 							Name:    "response",
@@ -185,8 +143,8 @@ var (
 					Name:        "delete",
 					Category:    "Reaction",
 					Aliases:     []string{"d"},
-					Description: "Use this command to delete reactions for a specified channel & emoji.",
-					Usage:       "Delete reactions for a specified channel & emoji",
+					Description: "Use this command to delete reactions for a specified channel.",
+					Usage:       "Delete reactions for a specified channel",
 					Before:      validateDelete,
 					Action:      delete,
 					Flags: []cli.Flag{
@@ -197,28 +155,14 @@ var (
 							Usage:   "for which channel to delete",
 							Value:   "",
 						},
-						&cli.StringFlag{
-							EnvVars: []string{"SKELLY_EMOJI"},
-							Name:    "emoji",
-							Aliases: []string{"e"},
-							Usage:   "for which emoji to delete",
-							Value:   "",
-						},
-						&cli.StringFlag{
-							EnvVars: []string{"SKELLY_USERGROUP"},
-							Name:    "usergroup",
-							Aliases: []string{"u"},
-							Usage:   "for which usergroup to delete",
-							Value:   "none",
-						},
 					},
 				},
 				{
 					Name:        "trigger",
 					Category:    "Reaction",
 					Aliases:     []string{"t"},
-					Description: "Use this command to simulate a reaction for a specified channel & emoji (and ts).",
-					Usage:       "Trigger a reaction for a specified channel & emoji (and ts)",
+					Description: "Use this command to simulate a reaction for a specified channel (and ts).",
+					Usage:       "Trigger a reaction for a specified channel (and ts)",
 					Before:      validateTrigger,
 					Action:      trigger,
 					Flags: []cli.Flag{
@@ -227,13 +171,6 @@ var (
 							Name:    "channel",
 							Aliases: []string{"c"},
 							Usage:   "which channel to trigger a reaction in",
-							Value:   "",
-						},
-						&cli.StringFlag{
-							EnvVars: []string{"SKELLY_EMOJI"},
-							Name:    "emoji",
-							Aliases: []string{"e"},
-							Usage:   "which emoji to trigger a reaction on",
 							Value:   "",
 						},
 						&cli.StringFlag{
@@ -254,50 +191,10 @@ var (
 			},
 		},
 	}
-
-	// statsCmds defines the main command for retrieving skelly statistics.
-	statsCmds = []*cli.Command{
-		{
-			Name:        "stats",
-			Category:    "Stats",
-			Aliases:     []string{"st"},
-			Description: "Use this command to retrieve skelly statistics.",
-			Usage:       "Calculates statistics using connected database.",
-			Subcommands: []*cli.Command{
-				{
-					Name:        "channel",
-					Category:    "Stats",
-					Aliases:     []string{"c", "ch"},
-					Description: "Use this command to view channel stats.",
-					Usage:       "View general statistics based on channel only.",
-					Before:      validateChannelStats,
-					Action:      channelStats,
-					Flags: []cli.Flag{
-						&cli.StringFlag{
-							EnvVars: []string{"SKELLY_CHANNEL"},
-							Name:    "channel",
-							Aliases: []string{"c"},
-							Usage:   "for which channel to retrieve stats",
-							Value:   "",
-						},
-					},
-				},
-				{
-					Name:        "skelly",
-					Category:    "Stats",
-					Aliases:     []string{"r"},
-					Description: "Use this command to view skelly stats.",
-					Usage:       "View general statistics based on all of skelly.",
-					Before:      validateSkellyStats,
-					Action:      skellyStats,
-				},
-			},
-		},
-	}
 )
 
 func cmds() []*cli.Command {
-	return append(append(statsCmds, reactionCmds...), serverCmd)
+	return append(reactionCmds, serverCmd)
 }
 
 // validateView is a helper function to load global configuration if set
@@ -306,14 +203,6 @@ func validateView(c *cli.Context) error {
 	// validate the user input in the command
 	if len(c.String("channel")) == 0 {
 		return util.InvalidCommand("channel")
-	}
-
-	if len(c.String("emoji")) == 0 {
-		return util.InvalidCommand("emoji")
-	}
-
-	if len(c.String("usergroup")) == 0 {
-		return util.InvalidCommand("usergroup")
 	}
 
 	return nil
@@ -351,12 +240,6 @@ func validateAdd(c *cli.Context) error {
 	if len(c.String("channel")) == 0 {
 		return util.InvalidCommand("channel")
 	}
-	if len(c.String("emoji")) == 0 {
-		return util.InvalidCommand("emoji")
-	}
-	if len(c.String("usergroup")) == 0 {
-		return util.InvalidCommand("usergroup")
-	}
 	if len(c.String("response")) == 0 {
 		return util.InvalidCommand("response")
 	}
@@ -371,12 +254,6 @@ func validateUpdate(c *cli.Context) error {
 	// validate the user input in the command
 	if len(c.String("channel")) == 0 {
 		return util.InvalidCommand("channel")
-	}
-	if len(c.String("emoji")) == 0 {
-		return util.InvalidCommand("emoji")
-	}
-	if len(c.String("usergroup")) == 0 {
-		return util.InvalidCommand("usergroup")
 	}
 	if len(c.String("response")) == 0 {
 		return util.InvalidCommand("response")
@@ -393,12 +270,6 @@ func validateDelete(c *cli.Context) error {
 	if len(c.String("channel")) == 0 {
 		return util.InvalidCommand("channel")
 	}
-	if len(c.String("emoji")) == 0 {
-		return util.InvalidCommand("emoji")
-	}
-	if len(c.String("usergroup")) == 0 {
-		return util.InvalidCommand("usergroup")
-	}
 
 	return nil
 }
@@ -406,24 +277,6 @@ func validateDelete(c *cli.Context) error {
 // validateTrigger is a helper function to load global configuration if set
 // via config or environment and validate the user input in the command
 func validateTrigger(c *cli.Context) error {
-
-	// validate the user input in the command
-	if len(c.String("channel")) == 0 {
-		return util.InvalidCommand("channel")
-	}
-	if len(c.String("emoji")) == 0 {
-		return util.InvalidCommand("emoji")
-	}
-	if len(c.String("user")) == 0 {
-		return util.InvalidCommand("user")
-	}
-
-	return nil
-}
-
-// validateChannelStats is a helper function to load global configuration if set
-// via config or environment and validate the user input in the command
-func validateChannelStats(c *cli.Context) error {
 
 	// validate the user input in the command
 	if len(c.String("channel")) == 0 {
@@ -447,7 +300,7 @@ func server(c *cli.Context) error {
 
 // view is a wrapper around running skelly.View via the CLI
 func view(c *cli.Context) error {
-	return skelly.View(c.String("channel"), c.String("emoji"), c.String("usergroup"))
+	return skelly.View(c.String("channel"))
 }
 
 // list is a wrapper around running skelly.List via the CLI
@@ -462,30 +315,20 @@ func clear(c *cli.Context) error {
 
 // add is a wrapper around running skelly.Add via the CLI
 func add(c *cli.Context) error {
-	return skelly.Add(c.String("token"), c.String("channel"), c.String("emoji"), c.String("usergroup"), c.String("response"))
+	return skelly.Add(c.String("token"), c.String("channel"), c.String("response"))
 }
 
 // update is a wrapper around running skelly.Update via the CLI
 func update(c *cli.Context) error {
-	return skelly.Update(c.String("token"), c.String("channel"), c.String("emoji"), c.String("usergroup"), c.String("response"))
+	return skelly.Update(c.String("token"), c.String("channel"), c.String("response"))
 }
 
 // delete is a wrapper around running skelly.Delete via the CLI
 func delete(c *cli.Context) error {
-	return skelly.Delete(c.String("token"), c.String("channel"), c.String("emoji"), c.String("usergroup"))
+	return skelly.Delete(c.String("token"), c.String("channel"))
 }
 
 // trigger is a wrapper around running skelly.Trigger via the CLI
 func trigger(c *cli.Context) error {
-	return skelly.Trigger(c.String("token"), c.String("channel"), c.String("emoji"), c.String("user"), c.String("ts"))
-}
-
-// channelStats is a wrapper around running skelly.ChannelStats via the CLI
-func channelStats(c *cli.Context) error {
-	return skelly.ChannelStats(c.String("token"), c.String("channel"))
-}
-
-// skellyStats is a wrapper around running skelly.GenericStats via the CLI
-func skellyStats(c *cli.Context) error {
-	return skelly.GenericStats(c.String("token"))
+	return skelly.Trigger(c.String("token"), c.String("channel"), c.String("user"), c.String("ts"))
 }

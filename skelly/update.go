@@ -1,7 +1,6 @@
 package skelly
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -17,54 +16,12 @@ import (
 // reaction in the skelly database
 func openUpdateModal(s *slack.SlashCommand, command string, args []string) error {
 
-	// parse and validate input
-	emoji, usergroup, err := parseReactionSubCommandArgs(args)
-
-	if err != nil {
-
-		// invalid command args, send help
-		err := sendHelp(command, s.ResponseURL)
-		if err != nil {
-			err = errors.Wrap(err, "could not send help")
-		}
-
-		return err
-	}
-
 	channel := s.ChannelID
 	user := s.UserID
 	triggerID := s.TriggerID
 
-	// parse emoji input
-	eID, err := parseEmoji(emoji)
-	if err != nil {
-
-		err = errors.Wrap(err, "could not parse emoji id")
-
-		// notify user
-		e := util.SendError(fmt.Sprintf("Sorry, is %s a valid emoji? Try using the autocomplete, starting with `:` !", emoji), channel, user)
-		if e != nil {
-			err = errors.Wrap(err, "could not send error: "+e.Error())
-		}
-		return err
-	}
-
-	// parse usergroup input
-	ugID, _, err := parseUserGroup(usergroup)
-	if err != nil {
-
-		err = errors.Wrap(err, "could not parse usergroup id")
-
-		// notify user
-		e := util.SendError(fmt.Sprintf("Sorry, is %s a valid usergroup? Try using the autocomplete. starting with `@` !", usergroup), channel, user)
-		if e != nil {
-			err = errors.Wrap(err, "could not send error: "+e.Error())
-		}
-		return err
-	}
-
 	// attempt to retrieve an existing reaction
-	exists, reaction, err := db.ReactionExists(channel, eID, ugID)
+	exists, reaction, err := db.ReactionExists(channel)
 	if err != nil {
 		err = errors.Wrap(err, "could not check for reaction")
 		return err
@@ -73,10 +30,10 @@ func openUpdateModal(s *slack.SlashCommand, command string, args []string) error
 	// if reaction does not exist
 	if !exists {
 
-		logrus.Infof("reaction does not exist for channel(%s) emoji(%s) usergroup(%s)", channel, eID, ugID)
+		logrus.Infof("reaction does not exist for channel(%s)", channel)
 
 		// notify user
-		err = util.SendError("Sorry, that reaction does not exist. Did you mean to add?", channel, user)
+		err = util.SendError("Sorry, that reaction does not exist for this channel. Did you mean to add?", channel, user)
 		if err != nil {
 			err = errors.Wrap(err, "could not send error")
 			return err
@@ -87,13 +44,13 @@ func openUpdateModal(s *slack.SlashCommand, command string, args []string) error
 
 	// build default modal
 	// uses channel and slash command as metadata
-	metadata := strings.Join([]string{updateSubCommand, emoji, usergroup, channel}, " ")
+	metadata := strings.Join([]string{updateSubCommand, channel}, " ")
 
 	modal := modal(updateSubCommand,
 		"Update a reaction in this channel.",
-		metadata, emoji, usergroup, reaction.Response)
+		metadata, reaction.Response)
 
-	logrus.Infof("opening update modal for channel(%s) emoji(%s) usergroup(%s) trigger_id(%s)", channel, emoji, usergroup, triggerID)
+	logrus.Infof("opening update modal for channel(%s) trigger_id(%s)", channel, triggerID)
 
 	// create an api client
 	bToken := os.Getenv("SKELLY_BOT_TOKEN")
@@ -120,36 +77,17 @@ func handleUpdateSubmission(view *slack.View, user, responseURL string) error {
 	}
 
 	// parse out args from private metadata
-	// ex: EMOJI:CHANNEL_ID
-	channel, emoji, usergroup, err := parseViewMetadata(view)
+	// ex: META:CHANNEL_ID
+	channel, err := parseViewMetadata(view)
 	if err != nil {
 		err = errors.Wrap(err, "could not parse metadata")
 		return err
 	}
 
-	logrus.Infof("parsed metadata channel(%s) emoji(%s) usergroup(%s)", channel, emoji, usergroup)
-
-	// parse out information from usergroup
-	eID, err := parseEmoji(emoji)
-	if err != nil {
-		err = errors.Wrap(err, "could not parse emoji")
-		return err
-	}
-
-	// parse out information from usergroup
-	ugID, _, err := parseUserGroup(usergroup)
-	if err != nil {
-		err = errors.Wrap(err, "could not parse usergroup")
-		return err
-	}
-
-	// check if user entered "none"
-	if usergroup == "none" {
-		ugID = "none"
-	}
+	logrus.Infof("parsed metadata channel(%s)", channel)
 
 	// check for reaction in the database
-	exists, _, err := db.ReactionExists(channel, eID, ugID)
+	exists, _, err := db.ReactionExists(channel)
 	if err != nil {
 		err = errors.Wrap(err, "could not check for reaction in db")
 		return err
@@ -157,10 +95,10 @@ func handleUpdateSubmission(view *slack.View, user, responseURL string) error {
 
 	if !exists {
 
-		logrus.Infof("reaction does not exist for channel(%s) emoji(%s) usergroup(%s)", channel, eID, ugID)
+		logrus.Infof("reaction does not exist for channel(%s)", channel)
 
 		// notify user
-		err = util.SendError("Sorry, that reaction does not exist. Did you mean to add?", channel, user)
+		err = util.SendError("Sorry, that reaction does not exist for this channel. Did you mean to add?", channel, user)
 		if err != nil {
 			err = errors.Wrap(err, "could not send error")
 			return err
@@ -170,14 +108,14 @@ func handleUpdateSubmission(view *slack.View, user, responseURL string) error {
 	}
 
 	// update reaction in the database
-	err = db.UpdateReaction(channel, eID, ugID, response)
+	err = db.UpdateReaction(channel, response)
 	if err != nil {
 		err = errors.Wrap(err, "could not update reaction in db")
 		return err
 	}
 
 	// build response
-	text := slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("I've updated the reaction for %s !", emoji), false, false)
+	text := slack.NewTextBlockObject("mrkdwn", "I've updated the reaction for this channel!", false, false)
 
 	section := slack.NewSectionBlock(text, nil, nil)
 

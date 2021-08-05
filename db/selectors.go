@@ -11,48 +11,36 @@ func channelSelector(channel string) bson.M {
 	}
 }
 
-// reactionsSelector return mgo/bson selector for retrieving reactions by channel/emoji
-func reactionsSelector(channel, emoji string) []bson.DocElem {
+// reactionsSelector return mgo/bson selector for retrieving reactions by channel
+func reactionsSelector(channel string) []bson.DocElem {
 
-	// returns mgo/bson selector containing channel and emoji
+	// returns mgo/bson selector containing channel
 	// uses bson.D with channel first for performance
 	return bson.D{
 		{
 			Name:  "channel",
 			Value: channel,
 		},
-		{
-			Name:  "emoji",
-			Value: emoji,
-		},
 	}
 }
 
-// reactionSelector return mgo/bson selector for retrieving reactions by channel/emoji/usergroup
-func reactionSelector(channel, emoji, usergroup string) []bson.DocElem {
+// reactionSelector return mgo/bson selector for retrieving reactions by channel
+func reactionSelector(channel string) []bson.DocElem {
 
-	// returns mgo/bson selector containing channel and emoji
+	// returns mgo/bson selector containing channel
 	// uses bson.D with channel first for performance
 	return bson.D{
 		{
 			Name:  "channel",
 			Value: channel,
 		},
-		{
-			Name:  "emoji",
-			Value: emoji,
-		},
-		{
-			Name:  "usergroup",
-			Value: usergroup,
-		},
 	}
 }
 
-// responseSelector return mgo/bson selector for retreiving responses by channel/emoji/timestamp
-func responseSelector(channel, emoji, timestamp string) []bson.DocElem {
+// responseSelector return mgo/bson selector for retreiving responses by channel/user/timestamp
+func responseSelector(channel, user, timestamp string) []bson.DocElem {
 
-	// return mgo/bson selector containing channel, emoji, and timestamp
+	// return mgo/bson selector containing channel, user, and timestamp
 	return bson.D{
 		{
 			Name:  "timestamp",
@@ -63,8 +51,8 @@ func responseSelector(channel, emoji, timestamp string) []bson.DocElem {
 			Value: channel,
 		},
 		{
-			Name:  "emoji",
-			Value: emoji,
+			Name:  "user",
+			Value: user,
 		},
 	}
 }

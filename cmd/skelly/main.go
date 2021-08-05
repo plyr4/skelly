@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/davidvader/skelly/db"
-	"github.com/davidvader/skelly/emojis"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -22,7 +21,7 @@ func main() {
 	// App Information
 	app.Name = "skelly"
 	app.HelpName = "skelly"
-	app.Usage = "Slack bot for automatically reacting to emojis, written in Go"
+	app.Usage = "Slack bot for automatically reacting to typing, written in Go"
 	app.Authors = []*cli.Author{
 		{
 			Name: "David Vader",
@@ -104,19 +103,6 @@ func load(c *cli.Context) error {
 	err := validate(c)
 	if err != nil {
 		return err
-	}
-
-	if !c.Bool("skip-load") {
-
-		logrus.Trace("loading emoji")
-
-		// load emojis into memory
-		err = emojis.Load()
-		if err != nil {
-			return err
-		}
-	} else {
-		logrus.Trace("skipping load")
 	}
 
 	return nil

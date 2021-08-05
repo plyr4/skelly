@@ -44,21 +44,21 @@ func HandleEvent(c *gin.Context, body []byte, e *slackevents.EventsAPIEvent, bTo
 			// extract inner event
 			innerEvent := e.InnerEvent
 
-			switch ev := innerEvent.Data.(type) {
+			switch innerEvent.Data.(type) {
 
 			// reaction added event
-			case *slackevents.ReactionAddedEvent:
+			// case *slackevents.ReactionAddedEvent:
 
-				logrus.Infof("received reaction added event for event_ts(%s) item_type(%s) item_ts(%s)", ev.EventTimestamp, ev.Item.Type, ev.Item.Timestamp)
+			// 	logrus.Infof("received reaction added event for event_ts(%s) item_type(%s) item_ts(%s)", ev.EventTimestamp, ev.Item.Type, ev.Item.Timestamp)
 
-				// react to the emoji
-				err := React(bToken, ev.Item.Channel, ev.Reaction, ev.User, ev.Item.Timestamp)
-				if err != nil {
-					err = errors.Wrap(err, "could not react")
-					logrus.Error(err)
-					return
-				}
-				return
+			// 	// react to the emoji
+			// 	err := React(bToken, ev.Item.Channel, ev.Reaction, ev.User, ev.Item.Timestamp)
+			// 	if err != nil {
+			// 		err = errors.Wrap(err, "could not react")
+			// 		logrus.Error(err)
+			// 		return
+			// 	}
+			// 	return
 
 			// unsupported inner event type
 			default:

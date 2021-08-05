@@ -2,36 +2,22 @@ package skelly
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
-	"github.com/davidvader/skelly/emojis"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 )
 
 // modal builds the default view modal for managing a reaction
-func modal(callback, header, metadata, emoji, usergroup, response string) slack.ModalViewRequest {
+func modal(callback, header, metadata, response string) slack.ModalViewRequest {
 
 	// header section
-	headerText := slack.NewTextBlockObject("mrkdwn", header+" A reaction will trigger a response when an emoji is added to a message by a member of the specified user group.", false, false)
+	headerText := slack.NewTextBlockObject("mrkdwn", header+" A reaction will trigger a response once a day for all users that type in a channel.", false, false)
 	headerSection := slack.NewSectionBlock(headerText, nil, nil)
-
-	// user args
-	ugText := usergroup
-	if usergroup == "none" {
-		ugText += " (all users)"
-	}
-
-	t := []*slack.TextBlockObject{
-		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Emoji*: %s", emoji), false, false),
-		slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Usergroup*: %s", ugText), false, false),
-	}
-	userInputSection := slack.NewSectionBlock(nil, t, nil)
 
 	// response input
 	responseText := slack.NewTextBlockObject("plain_text", "Response", false, false)
-	responsePlaceholder := slack.NewTextBlockObject("plain_text", "Enter a response to the emoji", false, false)
+	responsePlaceholder := slack.NewTextBlockObject("plain_text", "Enter a response for when users type in this channel", false, false)
 
 	responseElement := slack.NewPlainTextInputBlockElement(responsePlaceholder, "response")
 	responseElement.Multiline = true
@@ -43,7 +29,6 @@ func modal(callback, header, metadata, emoji, usergroup, response string) slack.
 	blocks := slack.Blocks{
 		BlockSet: []slack.Block{
 			headerSection,
-			userInputSection,
 			responseInput,
 		},
 	}
@@ -63,30 +48,16 @@ func modal(callback, header, metadata, emoji, usergroup, response string) slack.
 }
 
 // deleteModal builds the view modal for deleting a reaction
-func deleteModal(callback, metadata, emoji, usergroup string) slack.ModalViewRequest {
+func deleteModal(callback, metadata string) slack.ModalViewRequest {
 
 	// header section
 	headerText := slack.NewTextBlockObject("mrkdwn", "Delete a reaction.", false, false)
 	headerSection := slack.NewSectionBlock(headerText, nil, nil)
 
-	// user args
-	ugText := usergroup
-	if usergroup == "none" {
-		ugText += " (all users)"
-	}
-
-	e := slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Emoji*: %s", emoji), false, false)
-	ug := slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Usergroup*: %s", ugText), false, false)
-
-	emojiSection := slack.NewSectionBlock(nil, []*slack.TextBlockObject{e}, nil)
-	usergroupSection := slack.NewSectionBlock(nil, []*slack.TextBlockObject{ug}, nil)
-
 	// build message from blocks
 	blocks := slack.Blocks{
 		BlockSet: []slack.Block{
 			headerSection,
-			emojiSection,
-			usergroupSection,
 		},
 	}
 
@@ -131,87 +102,21 @@ func parseViewResponse(view *slack.View) (string, error) {
 }
 
 // parseViewMetadata takes view and extracts args from metadata
-func parseViewMetadata(view *slack.View) (string, string, string, error) {
+func parseViewMetadata(view *slack.View) (string, error) {
 
 	// split metadata by delimiter :
 	metadata := strings.Split(view.PrivateMetadata, " ")
 	if len(metadata) < 4 {
 		err := fmt.Errorf("invalid view submission metadata(%v)", metadata)
-		return "", "", "", err
+		return "", err
 	}
 
 	// extract args
-	emoji := metadata[1]
-	if len(emoji) == 0 {
-		return "", "", "", errors.New("bad metadata no emoji")
-	}
 
-	usergroup := metadata[2]
-	if len(usergroup) == 0 {
-		return "", "", "", errors.New("bad metadata no usergroup")
-	}
-
-	channel := metadata[3]
+	channel := metadata[1]
 	if len(channel) == 0 {
-		return "", "", "", errors.New("bad metadata no channel")
+		return "", errors.New("bad metadata no channel")
 	}
 
-	return channel, emoji, usergroup, nil
-}
-
-// parseUserGroup takes usergroup in format <!subteam^ID> and parses information
-func parseUserGroup(usergroup string) (string, string, error) {
-
-	// check for none
-	if usergroup == "none" {
-		return "none", "", nil
-	}
-
-	// compile usergroup regexp
-	r, err := regexp.Compile(`\<\!subteam\^(.*)\|\@(.*)\>`)
-	if err != nil {
-		return "", "", errors.Wrap(err, "could not compile regexp")
-	}
-
-	// find substrings
-	match := r.FindStringSubmatch(usergroup)
-
-	// if regexp did not find enough substrings
-	if len(match) < 3 {
-		return "", "", fmt.Errorf("could not match regex for usergroup(%s)", usergroup)
-	}
-
-	id := match[1]
-
-	handle := match[2]
-
-	return id, handle, nil
-}
-
-// parseEmoji takes emoji in format :smile: and parses ID (smile)
-func parseEmoji(emoji string) (string, error) {
-
-	// compile emoji regexp
-	r, err := regexp.Compile(`:(.*?):`)
-	if err != nil {
-		return "", errors.Wrap(err, "could not compile regexp")
-	}
-
-	// find substrings
-	match := r.FindStringSubmatch(emoji)
-
-	// if regexp did not find enough substrings
-	if len(match) < 2 {
-		return "", fmt.Errorf("could not match regex for emoji(%s)", emoji)
-	}
-
-	id := match[1]
-
-	// retrieve the emoji's core shortname
-	shortname, err := emojis.GetShortname(id)
-	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("could not get shortname(%s)", id))
-	}
-
-	return shortname, nil
+	return channel, nil
 }

@@ -1,7 +1,6 @@
 package skelly
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -17,53 +16,12 @@ import (
 // reaction from the skelly database
 func openDeleteModal(s *slack.SlashCommand, command string, args []string) error {
 
-	// parse and validate input
-	emoji, usergroup, err := parseReactionSubCommandArgs(args)
-	if err != nil {
-
-		// invalid command args, send help
-		err := sendHelp(command, s.ResponseURL)
-		if err != nil {
-			err = errors.Wrap(err, "could not send help")
-		}
-
-		return err
-	}
-
 	channel := s.ChannelID
 	user := s.UserID
 	triggerID := s.TriggerID
 
-	// parse emoji input
-	eID, err := parseEmoji(emoji)
-	if err != nil {
-
-		err = errors.Wrap(err, "could not parse emoji id")
-
-		// notify user
-		e := util.SendError(fmt.Sprintf("Sorry, is %s a valid emoji? Try using the autocomplete, starting with `:` !", emoji), channel, user)
-		if e != nil {
-			err = errors.Wrap(err, "could not send error: "+e.Error())
-		}
-		return err
-	}
-
-	// parse usergroup input
-	ugID, _, err := parseUserGroup(usergroup)
-	if err != nil {
-
-		err = errors.Wrap(err, "could not parse usergroup id")
-
-		// notify user
-		e := util.SendError(fmt.Sprintf("Sorry, is %s a valid usergroup? Try using the autocomplete. starting with `@` !", usergroup), channel, user)
-		if e != nil {
-			err = errors.Wrap(err, "could not send error: "+e.Error())
-		}
-		return err
-	}
-
 	// attempt to retrieve an existing reaction
-	exists, _, err := db.ReactionExists(channel, eID, ugID)
+	exists, _, err := db.ReactionExists(channel)
 	if err != nil {
 		err = errors.Wrap(err, "could not check for reaction")
 		return err
@@ -72,10 +30,10 @@ func openDeleteModal(s *slack.SlashCommand, command string, args []string) error
 	// if reaction does not exist
 	if !exists {
 
-		logrus.Infof("reaction does not exist for channel(%s) emoji(%s) usergroup(%s)", channel, eID, ugID)
+		logrus.Infof("reaction does not exist for channel(%s)", channel)
 
 		// notify user
-		err = util.SendError("Sorry, that reaction does not exist. Did you mean to add?", channel, user)
+		err = util.SendError("Sorry, that reaction does not exist for this channel. Did you mean to add?", channel, user)
 		if err != nil {
 			err = errors.Wrap(err, "could not send error")
 			return err
@@ -86,12 +44,12 @@ func openDeleteModal(s *slack.SlashCommand, command string, args []string) error
 
 	// build default modal
 	// uses channel and slash command as metadata
-	metadata := strings.Join([]string{deleteSubCommand, emoji, usergroup, channel}, " ")
+	metadata := strings.Join([]string{deleteSubCommand, channel}, " ")
 
 	modal := deleteModal(deleteSubCommand,
-		metadata, emoji, usergroup)
+		metadata)
 
-	logrus.Infof("opening delete modal for channel(%s) emoji(%s) usergroup(%s) trigger_id(%s)", channel, emoji, usergroup, triggerID)
+	logrus.Infof("opening delete modal for channel(%s) trigger_id(%s)", channel, triggerID)
 
 	// create an api client
 	bToken := os.Getenv("SKELLY_BOT_TOKEN")
@@ -111,36 +69,17 @@ func openDeleteModal(s *slack.SlashCommand, command string, args []string) error
 func handleDeleteSubmission(view *slack.View, user, responseURL string) error {
 
 	// parse out args from private metadata
-	// ex: EMOJI:CHANNEL_ID
-	channel, emoji, usergroup, err := parseViewMetadata(view)
+	// ex: META:CHANNEL_ID
+	channel, err := parseViewMetadata(view)
 	if err != nil {
 		err = errors.Wrap(err, "could not parse metadata")
 		return err
 	}
 
-	logrus.Infof("parsed metadata channel(%s) emoji(%s) usergroup(%s)", channel, emoji, usergroup)
-
-	// parse out information from usergroup
-	eID, err := parseEmoji(emoji)
-	if err != nil {
-		err = errors.Wrap(err, "could not parse emoji")
-		return err
-	}
-
-	// parse out information from usergroup
-	ugID, _, err := parseUserGroup(usergroup)
-	if err != nil {
-		err = errors.Wrap(err, "could not parse usergroup")
-		return err
-	}
-
-	// check if user entered "none"
-	if usergroup == "none" {
-		ugID = "none"
-	}
+	logrus.Infof("parsed metadata channel(%s)", channel)
 
 	// check for reaction in the database
-	exists, _, err := db.ReactionExists(channel, eID, ugID)
+	exists, _, err := db.ReactionExists(channel)
 	if err != nil {
 		err = errors.Wrap(err, "could not check for reaction in db")
 		return err
@@ -148,10 +87,10 @@ func handleDeleteSubmission(view *slack.View, user, responseURL string) error {
 
 	if !exists {
 
-		logrus.Infof("reaction does not exist for channel(%s) emoji(%s) usergroup(%s)", channel, eID, ugID)
+		logrus.Infof("reaction does not exist for channel(%s)", channel)
 
 		// notify user
-		err = util.SendError("Sorry, that reaction does not exist. Did you mean to add?", channel, user)
+		err = util.SendError("Sorry, that reaction does not exist for this channel. Did you mean to add?", channel, user)
 		if err != nil {
 			err = errors.Wrap(err, "could not send error")
 			return err
@@ -161,20 +100,15 @@ func handleDeleteSubmission(view *slack.View, user, responseURL string) error {
 	}
 
 	// delete reaction in the database
-	n, err := db.DeleteReactions(channel, eID, ugID)
+	n, err := db.DeleteReactions(channel)
 	if err != nil {
 		err = errors.Wrap(err, "could not delete reactions from db")
 		return err
 	}
 
-	logrus.Infof("removed (%v) reactions for channel(%s) emoji(%s) usergroup(%s)", n, channel, emoji, usergroup)
+	logrus.Infof("removed (%v) reactions for channel(%s)", n, channel)
 
-	// build response
-	ugText := usergroup
-	if usergroup == "none" {
-		ugText += " (all users)"
-	}
-	text := slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("I've deleted the reaction for %s and %s!", emoji, ugText), false, false)
+	text := slack.NewTextBlockObject("mrkdwn", "I've deleted the reaction for this channel!", false, false)
 
 	section := slack.NewSectionBlock(text, nil, nil)
 

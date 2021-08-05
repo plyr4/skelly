@@ -90,8 +90,8 @@ func listResponse(reactions []types.Reaction) slack.Message {
 
 		// build a view for the reaction
 		t := slack.NewTextBlockObject("mrkdwn",
-			fmt.Sprintf("*Emoji*: :%s: (%s) *Usergroup*: %s\n*Response*: %s",
-				r.Emoji, r.Emoji, r.UserGroupFull, r.Response),
+			fmt.Sprintf("\n*Response*: %s",
+				r.Response),
 			false, false)
 
 		block := slack.NewSectionBlock(t, nil, nil)

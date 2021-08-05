@@ -21,9 +21,6 @@ func Run(port string) error {
 	// health endpoint
 	router.GET("/health", healthHandler)
 
-	// cache refresh endpoint
-	router.GET("/refresh", refreshHandler)
-
 	// commands endpoint
 	router.POST(slackRouterPrefix("commands"), commandsHandler)
 

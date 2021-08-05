@@ -4,17 +4,16 @@ import (
 	"fmt"
 
 	"github.com/davidvader/skelly/db"
-	"github.com/davidvader/skelly/stats"
 	"github.com/gosuri/uitable"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
-// List takes channel, emoji and message and adds a reaction to the database.
+// List takes channel and message and adds a reaction to the database.
 func List(bToken, channel string) error {
 
-	// retrieve the appropriate reaction for the channel/emoji
+	// retrieve the appropriate reaction for the channel
 	reactions, err := db.GetChannelReactions(channel)
 	if err != nil {
 		return err
@@ -26,10 +25,10 @@ func List(bToken, channel string) error {
 	table.Wrap = true // wrap columns
 
 	table.AddRow(fmt.Sprintf("Reactions for channel(%s)", channel))
-	table.AddRow("EMOJI", "USERGROUP", "RESPONSE")
+	table.AddRow("RESPONSE")
 
 	for _, r := range *reactions {
-		table.AddRow(r.Emoji, r.UserGroup, r.Response)
+		table.AddRow(r.Response)
 	}
 
 	// add a row of space at the bottom
@@ -56,11 +55,11 @@ func Clear(channel string) error {
 	return nil
 }
 
-// View takes channel and emoji and retrieves the appropriate response
-func View(channel, emoji, usergroup string) error {
+// View takes channel and retrieves the appropriate response
+func View(channel string) error {
 
 	// retrieve reaction from db
-	reaction, err := db.GetReaction(channel, emoji, usergroup)
+	reaction, err := db.GetReaction(channel)
 	if err != nil {
 		err = errors.Wrap(err, "could not get reaction from db")
 		return err
@@ -77,120 +76,58 @@ func View(channel, emoji, usergroup string) error {
 	return nil
 }
 
-// Add takes channel, emoji and response and adds a reaction to the database.
-func Add(bToken, channel, emoji, usergroup, response string) error {
+// Add takes channel and response and adds a reaction to the database.
+func Add(bToken, channel, response string) error {
 
-	// add the appropriate reaction for the channel/emoji/msg
-	err := db.AddReaction(channel, emoji, usergroup, usergroup, response)
+	// add the appropriate reaction for the channel/msg
+	err := db.AddReaction(channel, response)
 	if err != nil {
 		err = errors.Wrap(err, "could not add reaction to db")
 		return err
 	}
 
-	logrus.Infof("reaction added for channel(%s) emoji(%s) usergroup(%s) response(%s)", channel, emoji, usergroup, response)
+	logrus.Infof("reaction added for channel(%s) response(%s)", channel, response)
 	return nil
 }
 
-// Update takes channel, emoji and response and updates a reaction in the database.
-func Update(bToken, channel, emoji, usergroup, response string) error {
+// Update takes channel and response and updates a reaction in the database.
+func Update(bToken, channel, response string) error {
 
-	// update the appropriate reaction for the channel/emoji
-	err := db.UpdateReaction(channel, emoji, usergroup, response)
+	// update the appropriate reaction for the channel
+	err := db.UpdateReaction(channel, response)
 	if err != nil {
 		err = errors.Wrap(err, "could not update reaction in db")
 		return err
 	}
 
-	logrus.Infof("reaction updated for channel(%s) emoji(%s) usergroup(%s) response(%s)", channel, emoji, usergroup, response)
+	logrus.Infof("reaction updated for channel(%s) response(%s)", channel, response)
 	return nil
 }
 
-// Delete takes channel and emoji and deletes reactions from the database.
-func Delete(bToken, channel, emoji, usergroup string) error {
+// Delete takes channel and deletes reactions from the database.
+func Delete(bToken, channel string) error {
 
-	// delete the appropriate reactions for the channel/emoji
-	n, err := db.DeleteReactions(channel, emoji, usergroup)
+	// delete the appropriate reactions for the channel
+	n, err := db.DeleteReactions(channel)
 	if err != nil {
 		err = errors.Wrap(err, "could not delete reaction from db")
 		return err
 	}
 
-	logrus.Infof("(%v) reactions deleted for channel(%s) emoji(%s)", n, channel, emoji)
+	logrus.Infof("(%v) reactions deleted for channel(%s)", n, channel)
 	return nil
 }
 
-// Trigger takes post parameters and posts a reaction following any rules specified for that channel, emoji and usergroup.
-func Trigger(bToken, channel, emoji, user, ts string) error {
+// Trigger takes post parameters and posts a reaction following any rules specified for that channel.
+func Trigger(bToken, channel, user, ts string) error {
 
-	// post the appropriate reactions for the channel/emoji/usergroup/ts
-	err := React(bToken, channel, emoji, user, ts)
+	// post the appropriate reactions for the channel/ts
+	err := React(bToken, channel, user, ts)
 	if err != nil {
-		logrus.Infof("could not post reaction for channel(%s) emoji(%s) user(%s) ts(%s)", channel, emoji, user, ts)
+		logrus.Infof("could not post reaction for channel(%s) user(%s) ts(%s)", channel, user, ts)
 		return err
 	}
 
-	logrus.Infof("reactions posted for channel(%s) emoji(%s) user(%s) ts(%s)", channel, emoji, user, ts)
-	return nil
-}
-
-// ChannelStats takes channel and prints skelly statistics for the specified channel.
-func ChannelStats(bToken, channel string) error {
-
-	// retrieve stats for the specified channel
-	stats, err := stats.GetChannelStats(channel)
-	if err != nil {
-		logrus.Infof("could not get channel stats for channel(%s)", channel)
-		return err
-	}
-
-	logrus.Infof("stats for channel(%s)", channel)
-
-	// output stats as a table
-	table := uitable.New()
-	table.MaxColWidth = 200
-	table.Wrap = true // wrap columns
-
-	table.AddRow(fmt.Sprintf("Stats for channel(%s)", channel))
-	table.AddRow("TOTAL RULES", stats.TotalRules)
-
-	// add a row of space at the bottom
-	table.AddRow()
-
-	// print the table
-	fmt.Println(table)
-
-	return nil
-}
-
-// GenericStats prints skelly statistics for the configured workspace.
-func GenericStats(bToken string) error {
-
-	// retrieve stats for the specified channel
-	stats, err := stats.GetSkellyStats(bToken)
-	if err != nil {
-		logrus.Infof("could not get Skelly stats")
-		return err
-	}
-
-	logrus.Infof("stats for all channels")
-
-	// output stats as a table
-	table := uitable.New()
-	table.MaxColWidth = 200
-	table.Wrap = true // wrap columns
-
-	table.AddRow("Stats for Skelly")
-	table.AddRow("TOTAL CHANNELS", stats.TotalChannels)
-	table.AddRow("CHANNEL NAMES")
-
-	for _, channel := range stats.Channels {
-		table.AddRow(channel.NameNormalized, channel.ID)
-	}
-	// add a row of space at the bottom
-	table.AddRow()
-
-	// print the table
-	fmt.Println(table)
-
+	logrus.Infof("reactions posted for channel(%s) user(%s) ts(%s)", channel, user, ts)
 	return nil
 }
