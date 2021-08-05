@@ -7,4 +7,4 @@ ENV GODEBUG=netdns=go
 
 ADD release/skelly /bin/
 
-ENTRYPOINT ["/runtime-connector", "/bin/skelly", "server"]
+ENTRYPOINT [ "/bin/skelly", "server"]
